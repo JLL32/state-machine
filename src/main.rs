@@ -1,69 +1,51 @@
-// This is some functionality shared by all of the states.
-trait SharedFunctionality {
-    fn get_shared_value(&self) -> usize;
+struct BottleFillingMachine<S> {
+    shared_value: usize,
+    state: S,
 }
 
 struct Waiting {
     waiting_time: std::time::Duration,
-    // Value shared by all the states.
-    shared_value: usize,
 }
-impl From<Done> for Waiting {
-    fn from(val: Done) -> Self {
-        Self {
-            waiting_time: std::time::Duration::new(0, 0),
-            shared_value: val.shared_value,
-        }
-    }
-}
-impl SharedFunctionality for Waiting {
-    fn get_shared_value(&self) -> usize {
-        self.shared_value
-    }
-}
-
 
 struct Filling {
     rate: usize,
-    // Value shared by all the states.
-    shared_value: usize,
 }
-impl From<Waiting> for Filling {
-    fn from(val: Waiting) -> Self {
-        Self {
-            rate: 1,
+
+struct Done;
+
+impl From<BottleFillingMachine<Waiting>> for BottleFillingMachine<Filling> {
+    fn from(val: BottleFillingMachine<Waiting>) -> Self {
+        BottleFillingMachine {
             shared_value: val.shared_value,
+            state: Filling {
+                rate: 1,
+            },
+        } 
+    }
+}
+
+impl From<BottleFillingMachine<Filling>> for BottleFillingMachine<Done> {
+    fn from(val: BottleFillingMachine<Filling>) -> Self {
+        BottleFillingMachine {
+            shared_value: val.shared_value,
+            state: Done {},
+        } 
+    }
+}
+
+impl BottleFillingMachine<Waiting> {
+    fn new(shared_value: usize) -> Self {
+        BottleFillingMachine {
+            shared_value,
+            state: Waiting {
+                waiting_time: std::time::Duration::new(0, 0),
+            },
         }
     }
-}
-impl SharedFunctionality for Filling {
-    fn get_shared_value(&self) -> usize {
-        self.shared_value
-    }
-}
-
-
-struct Done {
-    shared_value: usize,
-}
-impl From<Filling> for Done {
-    fn from(val: Filling) -> Self {
-        Self {
-            shared_value: val.shared_value,
-        }
-    }
-}
-impl SharedFunctionality for Done {
-    fn get_shared_value(&self) -> usize {
-        self.shared_value
-    }
-}
-
-enum State {
-    Waiting(Waiting),
-    Filling(Filling),
-    Done(Done),
 }
 
 fn main() {
+    let in_waiting = BottleFillingMachine::<Waiting>::new(0);
+    let in_filling = BottleFillingMachine::<Filling>::from(in_waiting);
+    let in_done = BottleFillingMachine::<Filling>::from(in_filling);
 }
