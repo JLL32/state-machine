@@ -17,10 +17,8 @@ impl From<BottleFillingMachine<Waiting>> for BottleFillingMachine<Filling> {
     fn from(val: BottleFillingMachine<Waiting>) -> Self {
         BottleFillingMachine {
             shared_value: val.shared_value,
-            state: Filling {
-                rate: 1,
-            },
-        } 
+            state: Filling { rate: 1 },
+        }
     }
 }
 
@@ -29,7 +27,7 @@ impl From<BottleFillingMachine<Filling>> for BottleFillingMachine<Done> {
         BottleFillingMachine {
             shared_value: val.shared_value,
             state: Done {},
-        } 
+        }
     }
 }
 
@@ -45,7 +43,17 @@ impl BottleFillingMachine<Waiting> {
 }
 
 fn main() {
-    let in_waiting = BottleFillingMachine::<Waiting>::new(0);
-    let in_filling = BottleFillingMachine::<Filling>::from(in_waiting);
-    let in_done = BottleFillingMachine::<Filling>::from(in_filling);
+    let bottle_filler = BottleFillingMachine::new(0);
+    
+    // (Mock) Check on some shared and state-specific values
+    assert_eq!(bottle_filler.state.waiting_time, std::time::Duration::new(0, 0));
+    assert_eq!(bottle_filler.shared_value, 0);
+    
+    // Transition
+    let bottle_filler = BottleFillingMachine::<Filling>::from(bottle_filler);
+    
+    // Can't do this anymore, it's been consumed!:
+    // assert_eq!(bottle_filler.state.waiting_time, std::time::Duration::new(0, 0));
+    
+    let bottle_filler = BottleFillingMachine::<Done>::from(bottle_filler);
 }
